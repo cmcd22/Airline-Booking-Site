@@ -1,3 +1,7 @@
+An assignment for my third-year course for Advanced Web Development.
+
+Using a Django framework, a site for a fictional airline was created. Users can book flights, check flight schedules and cancel bookings.
+
 When loading this app for the first time, it's important that you navigate
 to the /home page first, which allows the database to be populated with flight
 information (this may take a few seconds). All subsequent visits should also visit this page first in order
