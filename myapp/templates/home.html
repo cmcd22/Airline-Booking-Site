@@ -1,0 +1,62 @@
+<html lang='en' dir='ltr'>
+    <head>
+        {% load static %}
+        <link rel="stylesheet" href="{% static 'css.css' %}">
+        {% load static %}
+        <link rel="icon" type="image/png" href="{% static 'logo_small.png' %}">
+        <title>Home | Dairy Flat Airport</title>
+    </head>
+    <body>
+        <header>
+            <a href="{% url 'home' %}" class="logo">
+                <div>
+                  {% load static %}  
+                  <img src="{% static 'logo_medium.png' %}" alt="Dairy Flat Airport Logo" width="450" height="175" title="Home | Dairy Flat Airport">
+                </div>
+            </a>
+            <div class="header-right">
+                <a href="{% url 'book' %}" title="Book Flight | Dairy Flat Airport">Book Flight</a>
+                <a href="{% url 'flights' %}" title="Browse Flights | Dairy Flat Airport">Browse All Flights</a>
+                <a href="{% url 'cancel' %}" title="Cancel Booking | Dairy Flat Airport">Cancel Booking</a>
+            </div>
+        </header>
+        <div class="home1">
+            <h1>Welcome To Dairy Flat Airport</h1>
+            <h2>Luxury flying to incredible destinations!</h2>
+            <form action="{% url 'book' %}">
+                <input type="submit" value="BOOK NOW"/>
+            </form> 
+        </div>
+        <hr>
+        <div class="home1">
+            <h3>Got that travel bug but not sure where to go?</h3>
+            <h4>Search our flights to find the right one for you!</h4>
+            <form action="{% url 'flights' %}">
+                <input type="submit" value="SEARCH AVAILABLE FLIGHTS"/>
+            </form>
+        </div>
+        <hr>
+        <div class="home1">
+            <h3>Plans changed? Need to postpone or cancel?</h3>
+            <h4>Dairy Flat Airport offers easy cancellation</h4>
+            <form action="{% url 'cancel' %}">
+                <input type="submit" value="CANCEL A BOOKING"/>
+            </form>
+        </div>
+        <footer>
+            <div>
+            <div class="footer-info">
+            <p>Email: <u><b>info@dairyflatairport.co.nz</b></u></p>
+            <p>Phone: <u><b>+64 9 420 6969</b></u></p>
+            </div>
+            <div class="location">
+                <h1><u>Location:</u></h1>
+                <h2>36 Landfill Access Road, Dairy Flats 0794</h2>
+                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d20581.0635553348!2d174.6288387179942!3d-36.66523463911989!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x6d0d3d3235ccb6d1%3A0x55ec6b320883132!2sNorth%20Harbour%20Sports%20%26%20Country%20Club%20(Dairy%20Flat%20Club)!5e0!3m2!1sen!2snz!4v1651371009442!5m2!1sen!2snz" 
+                width="600" height="300" style="border:0;" allowfullscreen="" loading="lazy">
+                </iframe>
+            </div>
+            </div>
+        </footer>
+    </body>
+</html>

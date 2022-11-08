@@ -1,0 +1,319 @@
+<html lang='en' dir='ltr'>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <head>
+        {% load static %}
+        <link rel="stylesheet" href="{% static 'css.css' %}">
+        {% load static %}
+        <link rel="icon" type="image/png" href="{% static 'logo_small.png' %}">
+        <title>All Flights | Dairy Flat Airport</title>
+    </head>
+    <body onload="setDateRange()">
+        <header>
+            <a href="{% url 'home' %}" class="logo">
+                <div>
+                  {% load static %}  
+                  <img src="{% static 'logo_medium.png' %}" alt="Dairy Flat Airport Logo" width="450" height="175" title="Home | Dairy Flat Airport">
+                </div>
+            </a>
+            <div class="header-right">
+                <a href="{% url 'book' %}" title="Book Flight | Dairy Flat Airport">Book Flight</a>
+                <a class='active' href="{% url 'flights' %}" title="Browse Flights | Dairy Flat Airport">Browse All Flights</a>
+                <a href="{% url 'cancel' %}" title="Cancel Booking | Dairy Flat Airport">Cancel Booking</a>
+            </div>
+        </header>
+        <div class="home1">
+            <h1>Browse All Flights</h1>
+        </div>
+        <div class="searchOptions">
+            <label id="searchPathLabel" for="searchPathD"><b>Select By Flight Path: &emsp;</b></label>
+            <label>Leaving From: </label>
+            <select id="searchPathD" name="searchPathD" onchange="searchByPathD(this)">
+                <option value="pHolder" selected="true">*Select departure point*</option>
+                <option value="Chatham Islands">Chatham Islands</option>
+                <option value="Dairy Flat">Dairy Flat</option>
+                <option value="Great Barrier Island">Great Barrier Island</option>
+                <option value="Lake Tekapo">Lake Tekapo</option>
+                <option value="Rotorua">Rotorua</option>
+                <option value="Sydney">Sydney (AUS)</option>
+            </select>
+            <label>Going To: </label>
+            <select id="searchPathA" name="searchPathA" onchange="searchByPathA(this)">
+                <option value="pHolder" selected="true">*Select arrival point*</option>
+                <option value="Chatham Islands" disabled="true">Chatham Islands</option>
+                <option value="Dairy Flat" disabled="true">Dairy Flat</option>
+                <option value="Great Barrier Island" disabled="true">Great Barrier Island</option>
+                <option value="Lake Tekapo" disabled="true">Lake Tekapo</option>
+                <option value="Rotorua" disabled="true">Rotorua</option>
+                <option value="Sydney" disabled="true">Sydney (AUS)</option>
+            </select>
+        </div>
+        <div class="searchOptions">
+            <label id="searchDateLabel" for="searchDate"><b>Select By Date: </b></label>
+            <input type="date" name="searchDate" id="searchDate" onchange="searchByDate(this)">
+        </div>
+        <div class="searchOptions">
+            <label><b>Select By Date Range: &emsp;</b></label>
+            <label>From: </label>
+            <input type="date" name="dateRange1" id="dateRange1" onchange="searchByDateRange1(this)">
+            <label>To: </label>
+            <input type="date" name="dateRange2" id="dateRange2" onchange="searchByDateRange2(this)">
+        </div>
+        <button class='button2' onclick="resetFilters()">Reset Filters</button>
+        <br>
+        <h4>*All departure/arrival times are displayed in local time</h4>
+        <p id="errorMessage"></p>
+        <table id="allFlights">
+            <tr>
+                <td><b>Date</b></td>
+                <td><b>Flight Number</b></td>
+                <td><b>Leaving From</b></td>
+                <td><b>Going To</b></td>
+                <td><b>Duration</b></td>
+                <td><b>Departure Time</b></td>
+                <td><b>Arrival Time</b></td>
+                <td><b>Price</b></td>
+                <td class="hide">newDateFormat</td>
+            </tr>
+            {% for flight in allFlights %}
+            <tr class="nth-child">
+                <td>{{ flight.departureDate }}</td>
+                <td>{{ flight.flightNo }}</td>
+                <td>{{ flight.origin }}</td>
+                <td>{{ flight.destination }}</td>
+                <td>{{ flight.duration }}</td>
+                <td>{{ flight.departureTime }}</td>
+                <td>{{ flight.arrivalTime }}</td>
+                <td>{{ flight.price }}</td>
+                <td class="hide">{{ flight.newDateFormat }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+        <footer>
+            <div>
+                <div class="footer-info">
+                    <p>Email: <u><b>info@dairyflatairport.co.nz</b></u></p>
+                    <p>Phone: <u><b>+64 9 420 6969</b></u></p>
+                </div>
+                <div class="location">
+                    <h1><u>Location:</u></h1>
+                    <h2>36 Landfill Access Road, Dairy Flats 0794</h2>
+                    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d20581.0635553348!2d174.6288387179942!3d-36.66523463911989!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x6d0d3d3235ccb6d1%3A0x55ec6b320883132!2sNorth%20Harbour%20Sports%20%26%20Country%20Club%20(Dairy%20Flat%20Club)!5e0!3m2!1sen!2snz!4v1651371009442!5m2!1sen!2snz" 
+                    width="600" height="300" style="border:0;" allowfullscreen="" loading="lazy">
+                    </iframe>
+                </div>
+            </div>
+        </footer>
+    </body>
+    <script>
+        function setDateRange() {
+            var todaytemp = new Date();
+            todaytemp.setHours(todaytemp.getHours()+12);
+            var today = todaytemp.toISOString().split('T')[0];
+            var futuretemp = new Date(new Date().setFullYear(new Date().getFullYear() + 1))
+            futuretemp.setHours(futuretemp.getHours()+12);
+            var future = futuretemp.toISOString().split('T')[0];
+            document.getElementsByName("dateRange1")[0].setAttribute('min', today); 
+            document.getElementsByName("dateRange1")[0].setAttribute('max', future);
+            document.getElementsByName("dateRange2")[0].setAttribute('min', today); 
+            document.getElementsByName("dateRange2")[0].setAttribute('max', future);
+        }
+        function searchByDate(obj) {
+            document.getElementById('dateRange1').value = '';
+            document.getElementById('dateRange2').value = '';
+            document.getElementById('errorMessage').innerHTML = '';
+            origin = document.getElementById('searchPathD').value;
+            destin = document.getElementById('searchPathA').value;
+            $('#allFlights').prop('hidden',false);
+            if (obj.value == '') {
+                for (i = 1; i < (rows.length); i++) {
+                    rows[i].style.display='table-row';
+                }
+                return;
+            }
+            table = document.getElementById("allFlights");
+            rows = table.rows;
+            for (i = 1; i < (rows.length); i++) {
+                rows[i].style.display='table-row';
+                x = rows[i].getElementsByTagName("td")[8];
+                o = rows[i].getElementsByTagName("td")[2];
+                d = rows[i].getElementsByTagName("td")[3];
+                if (x.innerHTML != obj.value.toString()) {
+                    rows[i].style.display='none';
+                }
+                if (origin != 'pHolder' && destin != 'pHolder') {
+                    if (o.innerHTML != origin || d.innerHTML != destin) {
+                        rows[i].style.display='none';
+                    }
+                }
+            }
+            var count = 0;
+            for (i = 1; i < (rows.length); i++) {
+                if (rows[i].style.display != 'none') {
+                    count++;
+                }
+            }
+            if (count == 0) {
+                $('#allFlights').prop('hidden',true);
+                document.getElementById('errorMessage').innerHTML = '<h4>No available flights match the given criteria</h4>'
+            }
+        }
+        function searchByPathD(obj) {
+            $("#searchPathA option[value='pHolder']").prop('selected',true);
+            if($(obj).val() == "Chatham Islands") {
+                $("#searchPathD option[value='pHolder']").prop('disabled',true);
+                $("#searchPathA option[value='Chatham Islands']").prop('disabled',true);
+                $("#searchPathA option[value='Dairy Flat']").prop('disabled',false);
+                $("#searchPathA option[value='Great Barrier Island']").prop('disabled',true);
+                $("#searchPathA option[value='Lake Tekapo']").prop('disabled',true);
+                $("#searchPathA option[value='Rotorua']").prop('disabled',true);
+                $("#searchPathA option[value='Sydney']").prop('disabled',true);
+            } else if($(obj).val() == "Dairy Flat") {
+                $("#searchPathD option[value='pHolder']").prop('disabled',true);
+                $("#searchPathA option[value='Chatham Islands']").prop('disabled',false);
+                $("#searchPathA option[value='Dairy Flat']").prop('disabled',true);
+                $("#searchPathA option[value='Great Barrier Island']").prop('disabled',false);
+                $("#searchPathA option[value='Lake Tekapo']").prop('disabled',false);
+                $("#searchPathA option[value='Rotorua']").prop('disabled',false);
+                $("#searchPathA option[value='Sydney']").prop('disabled',false);
+            } else if($(obj).val() == "Great Barrier Island") {
+                $("#searchPathD option[value='pHolder']").prop('disabled',true);
+                $("#searchPathA option[value='Chatham Islands']").prop('disabled',true);
+                $("#searchPathA option[value='Dairy Flat']").prop('disabled',false);
+                $("#searchPathA option[value='Great Barrier Island']").prop('disabled',true);
+                $("#searchPathA option[value='Lake Tekapo']").prop('disabled',true);
+                $("#searchPathA option[value='Rotorua']").prop('disabled',true);
+                $("#searchPathA option[value='Sydney']").prop('disabled',true);
+            } else if($(obj).val() == "Lake Tekapo") {
+                $("#searchPathD option[value='pHolder']").prop('disabled',true);
+                $("#searchPathA option[value='Chatham Islands']").prop('disabled',true);
+                $("#searchPathA option[value='Dairy Flat']").prop('disabled',false);
+                $("#searchPathA option[value='Great Barrier Island']").prop('disabled',true);
+                $("#searchPathA option[value='Lake Tekapo']").prop('disabled',true);
+                $("#searchPathA option[value='Rotorua']").prop('disabled',true);
+                $("#searchPathA option[value='Sydney']").prop('disabled',true);
+            } else if($(obj).val() == "Rotorua") {
+                $("#searchPathD option[value='pHolder']").prop('disabled',true);
+                $("#searchPathA option[value='Chatham Islands']").prop('disabled',true);
+                $("#searchPathA option[value='Dairy Flat']").prop('disabled',false);
+                $("#searchPathA option[value='Great Barrier Island']").prop('disabled',true);
+                $("#searchPathA option[value='Lake Tekapo']").prop('disabled',true);
+                $("#searchPathA option[value='Rotorua']").prop('disabled',true);
+                $("#searchPathA option[value='Sydney']").prop('disabled',false);
+            } else {
+                $("#searchPathD option[value='pHolder']").prop('disabled',true);
+                $("#searchPathA option[value='Chatham Islands']").prop('disabled',true);
+                $("#searchPathA option[value='Dairy Flat']").prop('disabled',false);
+                $("#searchPathA option[value='Great Barrier Island']").prop('disabled',true);
+                $("#searchPathA option[value='Lake Tekapo']").prop('disabled',true);
+                $("#searchPathA option[value='Rotorua']").prop('disabled',true);
+                $("#searchPathA option[value='Sydney']").prop('disabled',true);
+            }
+        }
+        function searchByPathA(obj) {
+            document.getElementById('errorMessage').innerHTML = '';
+            var origin = $("#searchPathD").val();
+            var destination = $(obj).val();
+            var dateSingle = $("#searchDate").val();
+            var lower = $("#dateRange1").val();
+            var upper = $("#dateRange2").val();
+            table = document.getElementById("allFlights");
+            rows = table.rows;
+            if (origin == 'pHolder' || destination == 'pHolder') {
+                return;
+            }
+            for (i = 1; i < (rows.length); i++) {
+                rows[i].style.display='table-row';
+                x = rows[i].getElementsByTagName("td")[2];
+                y = rows[i].getElementsByTagName("td")[3];
+                date = rows[i].getElementsByTagName("td")[8];
+                if (x.innerHTML != origin || y.innerHTML != destination) {
+                    rows[i].style.display='none';
+                } else {
+                    if (lower != '' && upper != '') {
+                        if (date.innerHTML < lower || date.innerHTML > upper) {
+                            rows[i].style.display='none';
+                        }
+                    } else if (dateSingle != '') {
+                        if (date.innerHTML != dateSingle) {
+                            rows[i].style.display='none';
+                        }
+                    }
+                }
+            }
+            var count = 0;
+            for (i = 1; i < (rows.length); i++) {
+                if (rows[i].style.display != 'none') {
+                    count++;
+                }
+            }
+            if (count == 0) {
+                $('#allFlights').prop('hidden',true);
+                document.getElementById('errorMessage').innerHTML = '<h4>No available flights match the given criteria</h4>'
+            }
+        }
+        function searchByDateRange1(obj) {
+            document.getElementById('searchDate').value = '';
+            document.getElementsByName("dateRange2")[0].setAttribute('min', $(obj).val()); 
+            if ($("#dateRange2").val() != '') {
+                setRange();
+            } else {
+
+            }
+        }
+        function searchByDateRange2(obj) {
+            document.getElementById('searchDate').value = '';
+            if ($("#dateRange1").val() != '') {
+                setRange();
+            } else {
+                document.getElementsByName("dateRange1")[0].setAttribute('max', $(obj).val()); 
+            }
+        }
+        function setRange() {
+            document.getElementById('errorMessage').innerHTML = '';
+            var lower = $("#dateRange1").val();
+            var upper = $("#dateRange2").val();
+            var origin = $("#searchPathD").val();
+            var destin = $("#searchPathA").val();
+            table = document.getElementById("allFlights");
+            rows = table.rows;
+            for (i = 1; i < (rows.length); i++) {
+                rows[i].style.display='table-row';
+                x = rows[i].getElementsByTagName("td")[8];
+                o = rows[i].getElementsByTagName("td")[2];
+                d = rows[i].getElementsByTagName("td")[3];
+                if (x.innerHTML < lower || x.innerHTML > upper) {
+                    rows[i].style.display='none';
+                }
+                if (origin != 'pHolder' && destin != 'pHolder') {
+                    if (o.innerHTML != origin || d.innerHTML != destin) {
+                        rows[i].style.display='none';
+                    }
+                }
+            }
+            var count = 0;
+            for (i = 1; i < (rows.length); i++) {
+                if (rows[i].style.display != 'none') {
+                    count++;
+                }
+            }
+            if (count == 0) {
+                $('#allFlights').prop('hidden',true);
+                document.getElementById('errorMessage').innerHTML = '<h4>No available flights match the given criteria</h4>'
+            }
+        }
+        function resetFilters() {
+            $('#allFlights').prop('hidden',false);
+            document.getElementById('errorMessage').innerHTML = '';
+            table = document.getElementById("allFlights");
+            rows = table.rows;
+            for (i = 1; i < (rows.length); i++) {
+                rows[i].style.display='table-row';
+            }
+            document.getElementById('searchDate').value = '';
+            document.getElementById('dateRange1').value = '';
+            document.getElementById('dateRange2').value = '';
+            $("#searchPathD option[value='pHolder']").prop('selected',true);
+            $("#searchPathA option[value='pHolder']").prop('selected',true);
+        }
+    </script>
+</html>

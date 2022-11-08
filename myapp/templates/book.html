@@ -1,0 +1,847 @@
+<html lang='en' dir='ltr'>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <head>
+        {% load static %}
+        <link rel="stylesheet" href="{% static 'css.css' %}">
+        {% load static %}
+        <link rel="icon" type="image/png" href="{% static 'logo_small.png' %}">
+        <title>Home | Dairy Flat Airport</title>
+    </head>
+    <body>
+        <header>
+            <a href="{% url 'home' %}" class="logo">
+                <div>
+                  {% load static %}  
+                  <img src="{% static 'logo_medium.png' %}" alt="Dairy Flat Airport Logo" width="450" height="175" title="Home | Dairy Flat Airport">
+                </div>
+            </a>
+            <div class="header-right">
+                <a class='active' href="{% url 'book' %}" title="Book Flight | Dairy Flat Airport">Book Flight</a>
+                <a href="{% url 'flights' %}" title="Browse Flights | Dairy Flat Airport">Browse All Flights</a>
+                <a href="{% url 'cancel' %}" title="Cancel Booking | Dairy Flat Airport">Cancel Booking</a>
+            </div>
+        </header>
+        <div class="home1">
+            <h1>Book A Flight</h1>
+        </div>
+        <br><br>
+        <div class="bookingText">
+            <label>Leaving From:</label>
+            <select id="leavingFrom" name="leavingFrom" onchange="selectOrigin(this)">
+                <option value="pHolder" selected="true">*Select departure point*</option>
+                <option value="Chatham Islands">Chatham Islands</option>
+                <option value="Dairy Flat">Dairy Flat</option>
+                <option value="Great Barrier Island">Great Barrier Island</option>
+                <option value="Lake Tekapo">Lake Tekapo</option>
+                <option value="Rotorua">Rotorua</option>
+                <option value="Sydney">Sydney (AUS)</option>
+            </select>
+            <label id="goingToLabel" hidden="true">Going To:</label>
+            <select hidden="true" id="goingTo" name="goingTo" onchange="selectDep(this)">
+                <option value="pHolder" selected="true">*Select destination*</option>
+                <option value="Chatham Islands" disabled="true">Chatham Islands</option>
+                <option value="Dairy Flat" disabled="true">Dairy Flat</option>
+                <option value="Great Barrier Island" disabled="true">Great Barrier Island</option>
+                <option value="Lake Tekapo" disabled="true">Lake Tekapo</option>
+                <option value="Rotorua" disabled="true">Rotorua</option>
+                <option value="Sydney" disabled="true">Sydney (AUS)</option>
+            </select>
+        </div>
+        <br>
+        <div class="bookingText">
+            <input hidden="true" type="radio" id="return" name="flightType" value="Return" onchange="selectJourney(this)"/>
+            <label hidden="true" id="returnLabel" for="return">Return</label>
+            <input hidden="true" type="radio" id="oneway" name="flightType" value="One Way" onchange="selectJourney(this)"/>
+            <label hidden="true" id="onewayLabel" for="oneway">One Way</label>
+        </div>
+        <br>
+        <div class="bookingText">
+            <form action="" id="OWForm">
+                {% csrf_token %}
+                <label hidden="true" id="selectDepDateOWLabel" for="selectDepDateOW">Select Departure Date: </label>
+                <input hidden="true" type="date" name="selectDepDateOW" id="selectDepDateOW">
+            </form>
+            <button hidden="true" class='button3' id="OWButton" onclick="displayOWF()">Search</button>
+            <form action="" id="RForm">
+                {% csrf_token %}
+                <label hidden="true" id="selectDepDateLabel" for="selectDepDate">Select Departure Date: </label>
+                <input hidden="true" type="date" name="selectDepDateR" id="selectDepDateR" onchange="setRetDateLimits(this)">
+                <label hidden="true" id="selectRetDateLabel" for="selectRetDate">Select Return Date: </label>
+                <input hidden="true" type="date" name="selectRetDate" id="selectRetDate" onchange="hideFlightTables()">
+            </form>
+            <button class='button3' hidden="true" id="RButton" onclick="displayRF()">Search</button>
+        </div>
+        <br>
+        <h3 hidden='true' id="selectNotifier">*Please select an outgoing flight and a return flight*</h3>
+        <h3 hidden='true' id='rotoSydFlight'>WARNING: The return flight from this location only goes to Dairy Flat Airport. You must make a separate booking if you wish to fly from Dairy Flat to Rotorua.</h3>
+        <p id="displayFlights"></p>
+        <table hidden='true' id="displayFlightsTable" class="selectableRows"></table>
+        <p id="displayFlights2"></p>
+        <table hidden="true" id="displayFlightsTable2"></table>
+        <div class="flightInfo">
+            <form hidden='true' action="submit" id="OWFinalForm">
+                {% csrf_token %}
+                <p id="depDateFinalOW">Departure Date: </p>
+                <p id="flightNoFinalOW">Flight Number: </p>
+                <p id="originFinalOW">Leaving From: </p>
+                <p id="destinationFinalOW">Arriving In: </p>
+                <p id="durationFinalOW">Flight Duration: </p>
+                <p id="priceFinalOW">Price: </p>
+                <input hidden="true" type="text" name="hiddenDepDateOW" id="hiddenDepDateOW">
+                <input hidden="true" type="text" name="hiddenFlightNoOW" id="hiddenFlightNoOW">
+                <input hidden="true" type="text" name="hiddenOriginOW" id="hiddenOriginOW">
+                <input hidden="true" type="text" name="hiddenDestOW" id="hiddenDestOW">
+                <input hidden="true" type="text" name="hiddenDurationOW" id="hiddenDurationOW">
+                <input hidden="true" type="text" name="hiddenDepTimeOW" id="hiddenDepTimeOW">
+                <input hidden="true" type="text" name="hiddenArrTimeOW" id="hiddenArrTimeOW">
+                <input hidden="true" type="text" name="hiddenPriceOW" id="hiddenPriceOW">
+                <br><hr>
+                <h2>Personal Information</h2>
+                <br>
+                <label for="firstName">First Name: </label>
+                <input type="text" name="firstName" id="firstName" required placeholder="Enter firstname">
+                <label for="lastName">&emsp;Surname: </label>
+                <input type="text" name="lastName" id="lastName" required placeholder="Enter surname">
+                <br><br>
+                <label for="email">Email: </label>
+                <input type="email" name="email" id="email" required placeholder="example@example.com" size="40px">
+                <br><br>
+                <label for="phone">Contact Number: </label>
+                <input type="tel" name="phone" id="phone" placeholder="123-456-7890" pattern="[0-9]{10}"required size="15px"><br><br>
+                <label for="passport">Passport Number (Sydney Flights Only): </label>
+                <input type="text" name="passport" id="passport" placeholder="NZ12345" pattern="[A-Za-z]{2}[0-9]{5}">
+                <br>
+                <p id="submitFlightError"></p>
+                <input class="formbutton" type="submit" onclick="bookOW()" name="submit" value="SUBMIT BOOKING" form="bookform" title="Submit Booking">
+            </form>
+        </div>
+        <div class="flightInfo">
+            <div class="outgoingFlight" id="outgoingFlight">
+                <h3 id="outboundFlightTitle">*Outgoing Flight Info*</h3>
+                <hr>
+                <p id="depDateFinalR1">Departure Date: </p>
+                <p id="flightNoFinalR1">Flight Number: </p>
+                <p id="originFinalR1">Leaving From: </p>
+                <p id="destinationFinalR1">Arriving In: </p>
+                <p id="durationFinalR1">Flight Duration: </p>
+                <p id="priceFinalR1">Price: </p>
+                
+            </div>
+            <div class="returnFlight" id="returnFlight">
+                <h3 id="returnFlightTitle">*Return Flight Info*</h3>
+                <hr>
+                <p id="depDateFinalR2">Departure Date: </p>
+                <p id="flightNoFinalR2">Flight Number: </p>
+                <p id="originFinalR2">Leaving From: </p>
+                <p id="destinationFinalR2">Arriving In: </p>
+                <p id="durationFinalR2">Flight Duration: </p>
+                <p id="priceFinalR2">Price: </p>
+            </div>
+        </div>
+        <div class="flightInfo">
+            <form hidden="true" action="submit" id="RFinalForm">
+                {% csrf_token %}
+                <input hidden="true" type="text" name="hiddenDepDateR1" id="hiddenDepDateR1">
+                <input hidden="true" type="text" name="hiddenFlightNoR1" id="hiddenFlightNoR1">
+                <input hidden="true" type="text" name="hiddenOriginR1" id="hiddenOriginR1">
+                <input hidden="true" type="text" name="hiddenDestR1" id="hiddenDestR1">
+                <input hidden="true" type="text" name="hiddenDurationR1" id="hiddenDurationR1">
+                <input hidden="true" type="text" name="hiddenDepTimeR1" id="hiddenDepTimeR1">
+                <input hidden="true" type="text" name="hiddenArrTimeR1" id="hiddenArrTimeR1">
+                <input hidden="true" type="text" name="hiddenPriceR1" id="hiddenPriceR1">
+                <input hidden="true" type="text" name="hiddenDepDateR2" id="hiddenDepDateR2">
+                <input hidden="true" type="text" name="hiddenFlightNoR2" id="hiddenFlightNoR2">
+                <input hidden="true" type="text" name="hiddenOriginR2" id="hiddenOriginR2">
+                <input hidden="true" type="text" name="hiddenDestR2" id="hiddenDestR2">
+                <input hidden="true" type="text" name="hiddenDurationR2" id="hiddenDurationR2">
+                <input hidden="true" type="text" name="hiddenDepTimeR2" id="hiddenDepTimeR2">
+                <input hidden="true" type="text" name="hiddenArrTimeR2" id="hiddenArrTimeR2">
+                <input hidden="true" type="text" name="hiddenPriceR2" id="hiddenPriceR2">
+                <br><hr>
+                <h2>Personal Information</h2>
+                <br>
+                <label for="firstName">First Name: </label>
+                <input type="text" name="firstNameR" id="firstNameR" required="required" placeholder="Enter firstname">
+                <label for="lastName">&emsp;Surname: </label>
+                <input type="text" name="lastNameR" id="lastNameR" required="required" placeholder="Enter surname">
+                <br><br>
+                <label for="email">Email: </label>
+                <input type="email" name="emailR" id="emailR" required="required" placeholder="example@example.com" size="40px">
+                <br><br>
+                <label for="phone">Contact Number: </label>
+                <input type="tel" name="phoneR" id="phoneR" placeholder="123-456-7890" required="required" size="15px"><br><br>
+                <label for="passport">Passport Number (Sydney Flights Only): </label>
+                <input type="text" name="passportR" id="passportR" placeholder="NZ12345" pattern="[A-Za-z]{2}[0-9]{5}">
+                <br>
+                <p id="submitFlightErrorR"></p>
+                <input class="formbutton" type="submit" onclick="bookR()" name="submit" value="SUBMIT BOOKING" form="bookform" title="Submit Booking">
+            </form>
+        </div>
+        <footer>
+            <div>
+            <div class="footer-info">
+            <p>Email: <u><b>info@dairyflatairport.co.nz</b></u></p>
+            <p>Phone: <u><b>+64 9 420 6969</b></u></p>
+            </div>
+            <div class="location">
+                <h1><u>Location:</u></h1>
+                <h2>36 Landfill Access Road, Dairy Flats 0794</h2>
+                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d20581.0635553348!2d174.6288387179942!3d-36.66523463911989!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x6d0d3d3235ccb6d1%3A0x55ec6b320883132!2sNorth%20Harbour%20Sports%20%26%20Country%20Club%20(Dairy%20Flat%20Club)!5e0!3m2!1sen!2snz!4v1651371009442!5m2!1sen!2snz" 
+                width="600" height="300" style="border:0;" allowfullscreen="" loading="lazy">
+                </iframe>
+            </div>
+            </div>
+        </footer>
+    </body>
+    <script>
+        function selectOrigin(obj) {
+            $('#selectNotifier').prop('hidden',true);
+            $('#displayFlights').prop('hidden',true);
+            $('#displayFlightsTable').prop('hidden',true);
+            $('#displayFlights2').prop('hidden',true);
+            $('#displayFlightsTable2').prop('hidden',true);
+            $('#OWFinalForm').prop('hidden',true);
+            $('#RFinalForm').prop('hidden',true);
+            $('#rotoSydFlight').prop('hidden',true);
+            $('#return').prop('hidden',true);
+            $('#returnLabel').prop('hidden',true);
+            $('#oneway').prop('hidden',true);
+            $('#onewayLabel').prop('hidden',true);
+            $('#selectDepDateOWLabel').prop('hidden',true);
+            $('#selectDepDateOW').prop('hidden',true);
+            $('#selectDepDateLabel').prop('hidden',true);
+            $('#selectDepDateR').prop('hidden',true);
+            $('#selectRetDateLabel').prop('hidden',true);
+            $('#selectRetDate').prop('hidden',true);
+            $('#oneway').prop('checked',false);
+            $('#return').prop('checked',false);
+            document.getElementById('selectDepDateOW').value = '';
+            document.getElementById('selectDepDateR').value = '';
+            document.getElementById('OWButton').style.display = 'none';
+            document.getElementById('RButton').style.display = 'none';
+            document.getElementById('outgoingFlight').style.display = 'none';
+            document.getElementById('returnFlight').style.display = 'none';
+            document.getElementById('goingTo').value = 'pHolder';
+            if($(obj).val() == "Chatham Islands") {
+                $("#leavingFrom option[value='pHolder']").prop('disabled',true);
+                $("#goingTo option[value='Chatham Islands']").prop('disabled',true);
+                $("#goingTo option[value='Dairy Flat']").prop('disabled',false);
+                $("#goingTo option[value='Great Barrier Island']").prop('disabled',true);
+                $("#goingTo option[value='Lake Tekapo']").prop('disabled',true);
+                $("#goingTo option[value='Rotorua']").prop('disabled',true);
+                $("#goingTo option[value='Sydney']").prop('disabled',true);
+            } else if($(obj).val() == "Dairy Flat") {
+                $("#leavingFrom option[value='pHolder']").prop('disabled',true);
+                $("#goingTo option[value='Chatham Islands']").prop('disabled',false);
+                $("#goingTo option[value='Dairy Flat']").prop('disabled',true);
+                $("#goingTo option[value='Great Barrier Island']").prop('disabled',false);
+                $("#goingTo option[value='Lake Tekapo']").prop('disabled',false);
+                $("#goingTo option[value='Rotorua']").prop('disabled',false);
+                $("#goingTo option[value='Sydney']").prop('disabled',false);
+            } else if($(obj).val() == "Great Barrier Island") {
+                $("#leavingFrom option[value='pHolder']").prop('disabled',true);
+                $("#goingTo option[value='Chatham Islands']").prop('disabled',true);
+                $("#goingTo option[value='Dairy Flat']").prop('disabled',false);
+                $("#goingTo option[value='Great Barrier Island']").prop('disabled',true);
+                $("#goingTo option[value='Lake Tekapo']").prop('disabled',true);
+                $("#goingTo option[value='Rotorua']").prop('disabled',true);
+                $("#goingTo option[value='Sydney']").prop('disabled',true);
+            } else if($(obj).val() == "Lake Tekapo") {
+                $("#leavingFrom option[value='pHolder']").prop('disabled',true);
+                $("#goingTo option[value='Chatham Islands']").prop('disabled',true);
+                $("#goingTo option[value='Dairy Flat']").prop('disabled',false);
+                $("#goingTo option[value='Great Barrier Island']").prop('disabled',true);
+                $("#goingTo option[value='Lake Tekapo']").prop('disabled',true);
+                $("#goingTo option[value='Rotorua']").prop('disabled',true);
+                $("#goingTo option[value='Sydney']").prop('disabled',true);
+            } else if($(obj).val() == "Rotorua") {
+                $("#leavingFrom option[value='pHolder']").prop('disabled',true);
+                $("#goingTo option[value='Chatham Islands']").prop('disabled',true);
+                $("#goingTo option[value='Dairy Flat']").prop('disabled',false);
+                $("#goingTo option[value='Great Barrier Island']").prop('disabled',true);
+                $("#goingTo option[value='Lake Tekapo']").prop('disabled',true);
+                $("#goingTo option[value='Rotorua']").prop('disabled',true);
+                $("#goingTo option[value='Sydney']").prop('disabled',false);
+            } else {
+                $("#leavingFrom option[value='pHolder']").prop('disabled',true);
+                $("#goingTo option[value='Chatham Islands']").prop('disabled',true);
+                $("#goingTo option[value='Dairy Flat']").prop('disabled',false);
+                $("#goingTo option[value='Great Barrier Island']").prop('disabled',true);
+                $("#goingTo option[value='Lake Tekapo']").prop('disabled',true);
+                $("#goingTo option[value='Rotorua']").prop('disabled',true);
+                $("#goingTo option[value='Sydney']").prop('disabled',true);
+            }
+            $('#goingToLabel').prop('hidden',false);
+            $('#goingTo').prop('hidden',false);
+        };
+        function selectDep(obj) {
+            $('#selectNotifier').prop('hidden',true);
+            $('#displayFlights').prop('hidden',true);
+            $('#displayFlightsTable').prop('hidden',true);
+            $('#displayFlights2').prop('hidden',true);
+            $('#displayFlightsTable2').prop('hidden',true);
+            $('#OWFinalForm').prop('hidden',true);
+            $('#RFinalForm').prop('hidden',true);
+            $("#goingTo option[value='pHolder']").prop('disabled',true);
+            $('#return').prop('hidden',false);
+            $('#returnLabel').prop('hidden',false);
+            $('#oneway').prop('hidden',false);
+            $('#onewayLabel').prop('hidden',false);
+            $('#rotoSydFlight').prop('hidden',true);
+            $('#selectDepDateOWLabel').prop('hidden',true);
+            $('#selectDepDateOW').prop('hidden',true);
+            $('#selectDepDateLabel').prop('hidden',true);
+            $('#selectDepDateR').prop('hidden',true);
+            $('#selectRetDateLabel').prop('hidden',true);
+            $('#selectRetDate').prop('hidden',true);
+            $('#OWButton').prop('hidden',true);
+            $('#RButton').prop('hidden',true);
+            $('#oneway').prop('checked',false);
+            $('#return').prop('checked',false);
+            document.getElementById('selectDepDateOW').value = '';
+            document.getElementById('selectDepDateR').value = '';
+            document.getElementById('outgoingFlight').style.display = 'none';
+            document.getElementById('returnFlight').style.display = 'none';
+        };
+        function selectJourney(obj) {
+            $('#selectNotifier').prop('hidden',true);
+            $('#displayFlights').prop('hidden',true);
+            $('#displayFlightsTable').prop('hidden',true);
+            $('#displayFlights2').prop('hidden',true);
+            $('#displayFlightsTable2').prop('hidden',true);
+            $('#OWFinalForm').prop('hidden',true);
+            $('#RFinalForm').prop('hidden',true);
+            $('#rotoSydFlight').prop('hidden',true);
+            document.getElementById('outgoingFlight').style.display = 'none';
+            document.getElementById('returnFlight').style.display = 'none';
+            if (obj.checked && obj.value == 'One Way') {
+                $('#selectDepDateOWLabel').prop('hidden',false);
+                $('#selectDepDateOW').prop('hidden',false);
+                $('#OWButton').prop('hidden',false);
+                document.getElementById('OWButton').style.display = 'inline-block';
+                $('#RButton').prop('hidden',true);
+                document.getElementById('RButton').style.display = 'none';
+                $('#selectDepDateLabel').prop('hidden',true);
+                $('#selectDepDateR').prop('hidden',true);
+                $('#selectRetDateLabel').prop('hidden',true);
+                $('#selectRetDate').prop('hidden',true);
+                var todaytemp = new Date();
+                todaytemp.setHours(todaytemp.getHours()+12);
+                var today = todaytemp.toISOString().split('T')[0];
+                var futuretemp = new Date(new Date().setFullYear(new Date().getFullYear() + 1))
+                futuretemp.setHours(futuretemp.getHours()+12);
+                var future = futuretemp.toISOString().split('T')[0];
+                document.getElementsByName("selectDepDateOW")[0].setAttribute('min', today); 
+                document.getElementsByName("selectDepDateOW")[0].setAttribute('max', future);
+            } else if (obj.checked && obj.value == 'Return') {
+                $('#selectDepDateOWLabel').prop('hidden',true);
+                $('#selectDepDateOW').prop('hidden',true);
+                $('#OWButton').prop('hidden',true);
+                document.getElementById('OWButton').style.display = 'none';
+                $('#RButton').prop('hidden',false);
+                document.getElementById('RButton').style.display = 'inline-block';
+                $('#selectDepDateLabel').prop('hidden',false);
+                $('#selectDepDateR').prop('hidden',false);
+                var todaytemp = new Date();
+                todaytemp.setHours(todaytemp.getHours()+12);
+                var today = todaytemp.toISOString().split('T')[0];
+                var futuretemp = new Date(new Date().setFullYear(new Date().getFullYear() + 1))
+                futuretemp.setHours(futuretemp.getHours()+12);
+                var future = futuretemp.toISOString().split('T')[0];
+                document.getElementsByName("selectDepDateR")[0].setAttribute('min', today); 
+                document.getElementsByName("selectDepDateR")[0].setAttribute('max', future);
+            }
+        }
+        function setRetDateLimits(obj) {
+            $('#selectNotifier').prop('hidden',true);
+            $('#displayFlights').prop('hidden',true);
+            $('#displayFlightsTable').prop('hidden',true);
+            $('#displayFlights2').prop('hidden',true);
+            $('#displayFlightsTable2').prop('hidden',true);
+            $('#OWFinalForm').prop('hidden',true);
+            $('#RFinalForm').prop('hidden',true);
+            $('#rotoSydFlight').prop('hidden',true);
+            document.getElementById('outgoingFlight').style.display = 'none';
+            document.getElementById('returnFlight').style.display = 'none';
+            document.getElementById("selectRetDate").value = "";
+            var depDate = obj.value;
+            $('#selectRetDateLabel').prop('hidden',false);
+            $('#selectRetDate').prop('hidden',false);
+            var futuretemp = new Date(new Date().setFullYear(new Date().getFullYear() + 1))
+            futuretemp.setHours(futuretemp.getHours()+12);
+            var future = futuretemp.toISOString().split('T')[0];
+            document.getElementsByName("selectRetDate")[0].setAttribute('min', depDate); 
+            document.getElementsByName("selectRetDate")[0].setAttribute('max', future);
+        }
+        function hideFlightTables() {
+            $('#selectNotifier').prop('hidden',true);
+            $('#displayFlights').prop('hidden',true);
+            $('#displayFlightsTable').prop('hidden',true);
+            $('#displayFlights2').prop('hidden',true);
+            $('#displayFlightsTable2').prop('hidden',true);
+            $('#OWFinalForm').prop('hidden',true);
+            $('#RFinalForm').prop('hidden',true);
+            $('#rotoSydFlight').prop('hidden',true);
+            document.getElementById('outgoingFlight').style.display = 'none';
+            document.getElementById('returnFlight').style.display = 'none';
+        }
+        function displayOWF() {
+            document.getElementById('depDateFinalOW').innerHTML = '';
+            document.getElementById('flightNoFinalOW').innerHTML = '';
+            document.getElementById('originFinalOW').innerHTML = '';
+            document.getElementById('destinationFinalOW').innerHTML = '';
+            document.getElementById('durationFinalOW').innerHTML = '';
+            document.getElementById('priceFinalOW').innerHTML = '';
+            document.getElementById('hiddenDepDateOW').value = '';
+            document.getElementById('hiddenFlightNoOW').value = '';
+            document.getElementById('hiddenOriginOW').value = '';
+            document.getElementById('hiddenDestOW').value = '';
+            document.getElementById('hiddenDurationOW').value = '';
+            document.getElementById('hiddenDepTimeOW').value = '';
+            document.getElementById('hiddenArrTimeOW').value = '';
+            document.getElementById('hiddenPriceOW').value = '';
+            $('#displayFlights').prop('hidden',false);
+            $('#rotoSydFlight').prop('hidden',true);
+            $('#RFinalForm').prop('hidden',true);
+            document.getElementById('outgoingFlight').style.display = 'none';
+            document.getElementById('returnFlight').style.display = 'none';
+            $('#displayFlightsTable').prop('hidden',false);
+            document.getElementById("displayFlights").innerHTML = '';
+            document.getElementById("displayFlightsTable").innerHTML = '';
+            $('#displayFlightsTable').prop('hidden',true);
+            const form = document.getElementById("OWForm");
+            const depDate = form.elements['selectDepDateOW'].value;
+            const origin = document.getElementById("leavingFrom").value;
+            const destination = document.getElementById("goingTo").value;
+            const token = form.elements['csrfmiddlewaretoken'].value;
+            const uri = "{% url 'getflightsOW' %}";
+            if (depDate == '') {
+                document.getElementById("displayFlights").innerHTML = 'Please select a departure date';
+                return;
+            }
+            let xmlhttp = new XMLHttpRequest();
+            xmlhttp.onload = function() {
+                let recvText = xmlhttp.responseText;
+                if (recvText.slice(0,4) == '<h4>') {
+                    document.getElementById("displayFlights").innerHTML += recvText + '<br>';
+                } else {
+                    document.getElementById("displayFlightsTable").innerHTML += recvText;
+                    $('#displayFlightsTable').prop('hidden',false);
+                }
+            }
+            let payload = new FormData();
+            payload.append('date',depDate);
+            payload.append('origin',origin);
+            payload.append('destination',destination);
+            payload.append('csrfmiddlewaretoken',token);
+            xmlhttp.open("POST",uri,true);
+            xmlhttp.send(payload);
+        }
+        function displayRF() {
+            document.getElementById('depDateFinalR1').innerHTML = 'Departure Date: ';
+            document.getElementById('flightNoFinalR1').innerHTML = 'Flight Number: ';
+            document.getElementById('originFinalR1').innerHTML = 'Leaving From: ';
+            document.getElementById('destinationFinalR1').innerHTML = 'Arriving In: ';
+            document.getElementById('durationFinalR1').innerHTML = 'Flight Duration: ';
+            document.getElementById('priceFinalR1').innerHTML = 'Price: ';
+            document.getElementById('depDateFinalR2').innerHTML = 'Departure Date: ';
+            document.getElementById('flightNoFinalR2').innerHTML = 'Flight Number: ';
+            document.getElementById('originFinalR2').innerHTML = 'Leaving From: ';
+            document.getElementById('destinationFinalR2').innerHTML = 'Arriving In: ';
+            document.getElementById('durationFinalR2').innerHTML = 'Flight Duration: ';
+            document.getElementById('priceFinalR2').innerHTML = 'Price: ';
+            document.getElementById('hiddenDepDateR1').value = '';
+            document.getElementById('hiddenFlightNoR1').value = '';
+            document.getElementById('hiddenOriginR1').value = '';
+            document.getElementById('hiddenDestR1').value = '';
+            document.getElementById('hiddenDurationR1').value = '';
+            document.getElementById('hiddenDepTimeR1').value = '';
+            document.getElementById('hiddenArrTimeR1').value = '';
+            document.getElementById('hiddenPriceR1').value = '';
+            document.getElementById('hiddenDepDateR2').value = '';
+            document.getElementById('hiddenFlightNoR2').value = '';
+            document.getElementById('hiddenOriginR2').value = '';
+            document.getElementById('hiddenDestR2').value = '';
+            document.getElementById('hiddenDurationR2').value = '';
+            document.getElementById('hiddenDepTimeR2').value = '';
+            document.getElementById('hiddenArrTimeR2').value = '';
+            document.getElementById('hiddenPriceR2').value = '';
+            const form = document.getElementById("RForm");
+            const depDate = form.elements['selectDepDateR'].value;
+            const retDate = form.elements['selectRetDate'].value;
+            $('#displayFlights').prop('hidden',false);
+            if (depDate == '') {
+                document.getElementById("displayFlights").innerHTML = 'Please select a departure date';
+                return;
+            }
+            else if (retDate == '') {
+                document.getElementById("displayFlights").innerHTML = 'Please select a return date';
+                return;
+            }
+            $('#selectNotifier').prop('hidden',false);
+            $('#displayFlightsTable').prop('hidden',false);
+            $('#displayFlights2').prop('hidden',false);
+            $('#displayFlightsTable2').prop('hidden',false);
+            $('#RFinalForm').prop('hidden',true);
+            document.getElementById('outgoingFlight').style.display = 'none';
+            document.getElementById('returnFlight').style.display = 'none';
+            document.getElementById("displayFlights").innerHTML = '';
+            document.getElementById("displayFlightsTable").innerHTML = '';
+            document.getElementById("displayFlights2").innerHTML = '';
+            document.getElementById("displayFlightsTable2").innerHTML = '';
+            const origin = document.getElementById("leavingFrom").value;
+            const destination = document.getElementById("goingTo").value;
+            const token = form.elements['csrfmiddlewaretoken'].value;
+            const uri = "{% url 'getflightsR' %}";
+            if (origin == 'Rotorua' && destination == 'Sydney') {
+                $('#rotoSydFlight').prop('hidden',false);
+            }
+            let xmlhttp = new XMLHttpRequest();
+            xmlhttp.onload = function() {
+                let recvText = xmlhttp.responseText;
+                let recvText1 = recvText.split('#');
+                if (recvText1[0].slice(0,4) == '<h4>') {
+                    document.getElementById("displayFlights").innerHTML += recvText1[0] + '<br>';
+                } else {
+                    document.getElementById("displayFlightsTable").innerHTML += recvText1[0];
+                    $('#displayFlightsTable').prop('hidden',false);
+                }
+                if (recvText1[1].slice(0,4) == '<h4>') {
+                    document.getElementById("displayFlights2").innerHTML += recvText1[1] + '<br>';
+                } else {
+                    document.getElementById("displayFlightsTable2").innerHTML += recvText1[1];
+                    $('#displayFlightsTable2').prop('hidden',false);
+                    
+                    
+                }
+                if (document.getElementById('displayFlightsTable').innerHTML != '' && document.getElementById('displayFlightsTable2').innerHTML != '') {
+                    $('#selectNotifier').prop('hidden',false);
+                    document.getElementById('outgoingFlight').style.display = 'inline-block';
+                    document.getElementById('returnFlight').style.display = 'inline-block';
+                }
+            }
+            let payload = new FormData();
+            payload.append('depDate',depDate);
+            payload.append('retDate',retDate);
+            payload.append('origin',origin);
+            payload.append('destination',destination);
+            payload.append('csrfmiddlewaretoken',token);
+            xmlhttp.open("POST",uri,true);
+            xmlhttp.send(payload);
+        }
+        function finalSelection(obj) {
+            document.getElementById('depDateFinalOW').innerHTML = '';
+            document.getElementById('flightNoFinalOW').innerHTML = '';
+            document.getElementById('originFinalOW').innerHTML = '';
+            document.getElementById('destinationFinalOW').innerHTML = '';
+            document.getElementById('durationFinalOW').innerHTML = '';
+            document.getElementById('priceFinalOW').innerHTML = '';
+            $('#RFinalForm').prop('hidden',true);
+            $('#outgoingFlight').prop('hidden',true);
+            $('#returnFlight').prop('hidden',true);
+            var row = $(obj).closest('tr')[0]; 
+            var rowChildren = row.children;
+            const depDate = rowChildren[0].innerHTML;
+            document.getElementById('hiddenDepDateOW').value = depDate;
+            const flightNo = rowChildren[1].innerHTML;
+            document.getElementById('hiddenFlightNoOW').value = flightNo;
+            const origin = rowChildren[2].innerHTML;
+            document.getElementById('hiddenOriginOW').value = origin;
+            const dest = rowChildren[3].innerHTML;
+            document.getElementById('hiddenDestOW').value = dest;
+            const dur = rowChildren[4].innerHTML;
+            document.getElementById('hiddenDurationOW').value = dur;
+            const depTime = rowChildren[5].innerHTML;
+            document.getElementById('hiddenDepTimeOW').value = depTime;
+            const arrTime = rowChildren[6].innerHTML;
+            document.getElementById('hiddenArrTimeOW').value = arrTime;
+            const price = rowChildren[7].innerHTML;
+            document.getElementById('hiddenPriceOW').value = price;
+            let c = depDate.split('-');
+            let d = c[2]+'/'+c[1]+'/'+c[0];
+            document.getElementById('depDateFinalOW').innerHTML = '<h4><u>Departure Date:</u> <span>'+d+'</span></h4>';
+            document.getElementById('flightNoFinalOW').innerHTML = '<h4><u>Flight Number:</u> <span>'+flightNo+'</span></h4>';
+            document.getElementById('originFinalOW').innerHTML = '<h4><u>Leaving From:</u> <span>'+origin+' at '+depTime+'</span></h4>';
+            document.getElementById('destinationFinalOW').innerHTML = '<h4><u>Arriving In:</u> <span>'+dest+' at '+arrTime+'</span></h4>';
+            let a = dur.split(':');
+            var hours = '';
+            var minutes = a[1]+' Minutes';
+            if (a[0] != '00') {
+                var b = a[0].split('');
+                if (b[1] == '1') {
+                    hours = '1 Hour and ';
+                } else {
+                    hours = b[1]+' Hours and ';
+                }
+            }
+            document.getElementById('durationFinalOW').innerHTML = '<h4><u>Flight Duration:</u> <span>'+hours+minutes+'</span></h4>';
+            document.getElementById('priceFinalOW').innerHTML = '<h4><u>Price:</u> <span>'+price+'</span><h4>';
+            $('#OWFinalForm').prop('hidden',false);
+        }
+        function finalSelectionRet1(obj) {
+            document.getElementById('depDateFinalR1').innerHTML = '';
+            document.getElementById('flightNoFinalR1').innerHTML = '';
+            document.getElementById('originFinalR1').innerHTML = '';
+            document.getElementById('destinationFinalR1').innerHTML = '';
+            document.getElementById('durationFinalR1').innerHTML = '';
+            document.getElementById('priceFinalR1').innerHTML = '';
+            var row = $(obj).closest('tr')[0]; 
+            var rowChildren = row.children;
+            const depDate = rowChildren[0].innerHTML;
+            document.getElementById('hiddenDepDateR1').value = depDate;
+            const flightNo = rowChildren[1].innerHTML;
+            document.getElementById('hiddenFlightNoR1').value = flightNo;
+            const origin = rowChildren[2].innerHTML;
+            document.getElementById('hiddenOriginR1').value = origin;
+            const dest = rowChildren[3].innerHTML;
+            document.getElementById('hiddenDestR1').value = dest;
+            const dur = rowChildren[4].innerHTML;
+            document.getElementById('hiddenDurationR1').value = dur;
+            const depTime = rowChildren[5].innerHTML;
+            document.getElementById('hiddenDepTimeR1').value = depTime;
+            const arrTime = rowChildren[6].innerHTML;
+            document.getElementById('hiddenArrTimeR1').value = arrTime;
+            const price = rowChildren[7].innerHTML;
+            document.getElementById('hiddenPriceR1').value = price;
+            let c = depDate.split('-');
+            let d = c[2]+'/'+c[1]+'/'+c[0];
+            document.getElementById('depDateFinalR1').innerHTML = '<h4><u>Departure Date:</u> <span>'+d+'</span></h4>';
+            document.getElementById('flightNoFinalR1').innerHTML = '<h4><u>Flight Number:</u> <span>'+flightNo+'</span></h4>';
+            document.getElementById('originFinalR1').innerHTML = '<h4><u>Leaving From:</u> <span>'+origin+' at '+depTime+'</span></h4>';
+            document.getElementById('destinationFinalR1').innerHTML = '<h4><u>Arriving In:</u> <span>'+dest+' at '+arrTime+'</span></h4>';
+            let a = dur.split(':');
+            var hours = '';
+            var minutes = a[1]+' Minutes';
+            if (a[0] != '00') {
+                var b = a[0].split('');
+                if (b[1] == '1') {
+                    hours = '1 Hour and ';
+                } else {
+                    hours = b[1]+' Hours and ';
+                }
+            }
+            document.getElementById('durationFinalR1').innerHTML = '<h4><u>Flight Duration:</u> <span>'+hours+minutes+'</span></h4>';
+            document.getElementById('priceFinalR1').innerHTML = '<h4><u>Price:</u> <span>'+price+'</span><h4>';
+            if (document.getElementById('hiddenDepDateR2').value != '') {
+                $('#RFinalForm').prop('hidden',false);
+            }
+
+        }
+        function finalSelectionRet2(obj) {
+            document.getElementById('depDateFinalR2').innerHTML = '';
+            document.getElementById('flightNoFinalR2').innerHTML = '';
+            document.getElementById('originFinalR2').innerHTML = '';
+            document.getElementById('destinationFinalR2').innerHTML = '';
+            document.getElementById('durationFinalR2').innerHTML = '';
+            document.getElementById('priceFinalR2').innerHTML = '';
+            var row = $(obj).closest('tr')[0]; 
+            var rowChildren = row.children;
+            const depDate = rowChildren[0].innerHTML;
+            document.getElementById('hiddenDepDateR2').value = depDate;
+            const flightNo = rowChildren[1].innerHTML;
+            document.getElementById('hiddenFlightNoR2').value = flightNo;
+            const origin = rowChildren[2].innerHTML;
+            document.getElementById('hiddenOriginR2').value = origin;
+            const dest = rowChildren[3].innerHTML;
+            document.getElementById('hiddenDestR2').value = dest;
+            const dur = rowChildren[4].innerHTML;
+            document.getElementById('hiddenDurationR2').value = dur;
+            const depTime = rowChildren[5].innerHTML;
+            document.getElementById('hiddenDepTimeR2').value = depTime;
+            const arrTime = rowChildren[6].innerHTML;
+            document.getElementById('hiddenArrTimeR2').value = arrTime;
+            const price = rowChildren[7].innerHTML;
+            document.getElementById('hiddenPriceR2').value = price;
+            let c = depDate.split('-');
+            let d = c[2]+'/'+c[1]+'/'+c[0];
+            document.getElementById('depDateFinalR2').innerHTML = '<h4><u>Departure Date:</u> <span>'+d+'</span></h4>';
+            document.getElementById('flightNoFinalR2').innerHTML = '<h4><u>Flight Number:</u> <span>'+flightNo+'</span></h4>';
+            document.getElementById('originFinalR2').innerHTML = '<h4><u>Leaving From:</u> <span>'+origin+' at '+depTime+'</span></h4>';
+            document.getElementById('destinationFinalR2').innerHTML = '<h4><u>Arriving In:</u> <span>'+dest+' at '+arrTime+'</span></h4>';
+            let a = dur.split(':');
+            var hours = '';
+            var minutes = a[1]+' Minutes';
+            if (a[0] != '00') {
+                var b = a[0].split('');
+                if (b[1] == '1') {
+                    hours = '1 Hour and ';
+                } else {
+                    hours = b[1]+' Hours and ';
+                }
+            }
+            document.getElementById('durationFinalR2').innerHTML = '<h4><u>Flight Duration:</u> <span>'+hours+minutes+'</span></h4>';
+            document.getElementById('priceFinalR2').innerHTML = '<h4><u>Price:</u> <span>'+price+'</span><h4>';
+            if (document.getElementById('hiddenDepDateR1').value != '') {
+                $('#RFinalForm').prop('hidden',false);
+            }
+        }
+
+        function bookOW() {
+            const form = document.getElementById("OWFinalForm");
+            const depDate = form.elements['hiddenDepDateOW'].value;
+            const flightNo = form.elements['hiddenFlightNoOW'].value;
+            const origin = form.elements['hiddenOriginOW'].value;
+            const destination = form.elements['hiddenDestOW'].value;
+            const duration = form.elements['hiddenDurationOW'].value;
+            const depTime = form.elements['hiddenDepTimeOW'].value;
+            const arrTime = form.elements['hiddenArrTimeOW'].value;
+            const price = form.elements['hiddenPriceOW'].value;
+            const fName = form.elements['firstName'].value;
+            const lName = form.elements['lastName'].value;
+            const email = form.elements['email'].value;
+            const phone = form.elements['phone'].value;
+            const passport = form.elements['passport'].value;
+            const token = form.elements['csrfmiddlewaretoken'].value;
+            const uri = "{% url 'confirmationoneway' %}";
+            if (fName == '' || lName == '' || email == '' || phone == '') {
+                document.getElementById('submitFlightError').innerHTML = "Please fill out all customer information fields";
+                return;
+            }
+            if (!fName.match(/^[a-zA-Z_\s]+$/) || !lName.match(/^[a-zA-Z_\s]+$/)) {
+                document.getElementById('submitFlightError').innerHTML = "Invalid input! Names can only contain letters (spaces are allowed)";
+                return;
+            }
+            if (!email.includes('@')) {
+                document.getElementById('submitFlightError').innerHTML = "Invalid input! Email address is not valid";
+                return;
+            } else {
+                var checkEmail = email.split('@');
+                if (checkEmail[0] == '' || checkEmail[1] == '') {
+                    document.getElementById('submitFlightError').innerHTML = "Invalid input! Email address is not valid";
+                    return;
+                }
+            }
+            if (phone.length < 7) {
+                document.getElementById('submitFlightErrorR').innerHTML = "Invalid input! Phone number must be at least 7 digits long";
+                return;
+            }
+            if (!phone.match(/^[0-9_\s_+]+$/)) {
+                document.getElementById('submitFlightError').innerHTML = "Invalid input! Phone number must be numbers only (spaces and '+' are allowed)";
+                return;
+            }
+            if ((origin == 'Sydney' || destination == 'Sydney')) {
+                if (passport == '') {
+                    document.getElementById('submitFlightError').innerHTML = "Please enter your passport number";
+                    return;
+                } else {
+                    if (!passport[0].match(/^[a-zA-Z_]+$/) || !passport[1].match(/^[a-zA-Z_]+$/)) {
+                        document.getElementById('submitFlightError').innerHTML = "A valid passport number is required (2 letters-5 numbers)";
+                        return;
+                    }
+                    var pSlice = passport.slice(2);
+                    if (pSlice.length > 5) {
+                        document.getElementById('submitFlightError').innerHTML = "A valid passport number is required (2 letters-5 numbers)";
+                        return;
+                    }
+                    if (!pSlice.match(/^[0-9_]+$/)) {
+                        document.getElementById('submitFlightError').innerHTML = "A valid passport number is required (2 letters-5 numbers)";
+                        return;
+                    }
+                }
+            }
+            let xmlhttp = new XMLHttpRequest();
+            xmlhttp.onload = function() {
+                const uri = "{% url 'confirmationoneway' %}";
+                window.location = uri;
+            }
+            let payload = new FormData();
+            payload.append('flightNo',flightNo);
+            payload.append('firstName',fName);
+            payload.append('lastName',lName);
+            payload.append('email',email);
+            payload.append('phone',phone);
+            payload.append('passport',passport);
+            payload.append('csrfmiddlewaretoken',token);
+            xmlhttp.open("POST",uri,true);
+            xmlhttp.send(payload);
+        }
+        function bookR() {
+            const form = document.getElementById("RFinalForm");
+            const depDate1 = form.elements['hiddenDepDateR1'].value;
+            const flightNo1 = form.elements['hiddenFlightNoR1'].value;
+            const origin1 = form.elements['hiddenOriginR1'].value;
+            const destination1 = form.elements['hiddenDestR1'].value;
+            const duration1 = form.elements['hiddenDurationR1'].value;
+            const depTime1 = form.elements['hiddenDepTimeR1'].value;
+            const arrTime1 = form.elements['hiddenArrTimeR1'].value;
+            const price1 = form.elements['hiddenPriceR1'].value;
+            const depDate2 = form.elements['hiddenDepDateR2'].value;
+            const flightNo2 = form.elements['hiddenFlightNoR2'].value;
+            const origin2 = form.elements['hiddenOriginR2'].value;
+            const destination2 = form.elements['hiddenDestR2'].value;
+            const duration2 = form.elements['hiddenDurationR2'].value;
+            const depTime2 = form.elements['hiddenDepTimeR2'].value;
+            const arrTime2 = form.elements['hiddenArrTimeR2'].value;
+            const price2 = form.elements['hiddenPriceR2'].value;
+            const fName = form.elements['firstNameR'].value;
+            const lName = form.elements['lastNameR'].value;
+            const email = form.elements['emailR'].value;
+            const phone = form.elements['phoneR'].value;
+            const passport = form.elements['passportR'].value;
+            const token = form.elements['csrfmiddlewaretoken'].value;
+            const uri = "{% url 'confirmationreturn' %}";
+            if (fName == '' || lName == '' || email == '' || phone == '') {
+                document.getElementById('submitFlightErrorR').innerHTML = "Please fill out all customer information fields";
+                return;
+            }
+            if (!fName.match(/^[a-zA-Z_\s]+$/) || !lName.match(/^[a-zA-Z_\s]+$/)) {
+                document.getElementById('submitFlightErrorR').innerHTML = "Invalid input! Names can only contain letters (spaces are allowed)";
+                return;
+            }
+            if (!email.includes('@')) {
+                document.getElementById('submitFlightErrorR').innerHTML = "Invalid input! Email address is not valid";
+                return;
+            } else {
+                var checkEmail = email.split('@');
+                if (checkEmail[0] == '' || checkEmail[1] == '') {
+                    document.getElementById('submitFlightErrorR').innerHTML = "Invalid input! Email address is not valid";
+                    return;
+                }
+            }
+            if (phone.length < 7) {
+                document.getElementById('submitFlightErrorR').innerHTML = "Invalid input! Phone number must be at least 7 digits long";
+                return;
+            }
+            if (!phone.match(/^[0-9_\s_+]+$/)) {
+                document.getElementById('submitFlightErrorR').innerHTML = "Invalid input! Phone number must be numbers only (spaces and '+' are allowed)";
+                return;
+            }
+            if ((origin1 == 'Sydney' || destination1 == 'Sydney') || (origin2 == 'Sydney' || destination2 == 'Sydney')) {
+                if (passport == '') {
+                    document.getElementById('submitFlightErrorR').innerHTML = "Please enter your passport number";
+                    return;
+                } else {
+                    if (!passport[0].match(/^[a-zA-Z_]+$/) || !passport[1].match(/^[a-zA-Z_]+$/)) {
+                        document.getElementById('submitFlightErrorR').innerHTML = "A valid passport number is required (2 letters-5 numbers)";
+                        return;
+                    }
+                    var pSlice = passport.slice(2);
+                    if (pSlice.length > 5) {
+                        document.getElementById('submitFlightErrorR').innerHTML = "A valid passport number is required (2 letters-5 numbers)";
+                        return;
+                    }
+                    if (!pSlice.match(/^[0-9_]+$/)) {
+                        document.getElementById('submitFlightErrorR').innerHTML = "A valid passport number is required (2 letters-5 numbers)";
+                        return;
+                    }
+                }
+            }
+            let xmlhttp = new XMLHttpRequest();
+            xmlhttp.onload = function() {
+                const uri = "{% url 'confirmationreturn' %}";
+                window.location = uri;
+            }
+            let payload = new FormData();
+            payload.append('flightNo1',flightNo1);
+            payload.append('flightNo2',flightNo2);
+            payload.append('firstName',fName);
+            payload.append('lastName',lName);
+            payload.append('email',email);
+            payload.append('phone',phone);
+            payload.append('passport',passport);
+            payload.append('csrfmiddlewaretoken',token);
+            xmlhttp.open("POST",uri,true);
+            xmlhttp.send(payload);
+        }
+    </script>
+</html>

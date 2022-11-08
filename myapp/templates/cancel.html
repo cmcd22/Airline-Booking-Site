@@ -1,0 +1,132 @@
+<html lang='en' dir='ltr'>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <head>
+        {% load static %}
+        <link rel="stylesheet" href="{% static 'css.css' %}">
+        {% load static %}
+        <link rel="icon" type="image/png" href="{% static 'logo_small.png' %}">
+        <title>Cancel Booking | Dairy Flat Airport</title>
+    </head>
+    <body>
+        <header>
+            <a href="{% url 'home' %}" class="logo">
+                <div>
+                  {% load static %}  
+                  <img src="{% static 'logo_medium.png' %}" alt="Dairy Flat Airport Logo" width="450" height="175" title="Home | Dairy Flat Airport">
+                </div>
+            </a>
+            <div class="header-right">
+                <a href="{% url 'book' %}" title="Book Flight | Dairy Flat Airport">Book Flight</a>
+                <a href="{% url 'flights' %}" title="Browse Flights | Dairy Flat Airport">Browse All Flights</a>
+                <a class='active' href="{% url 'cancel' %}" title="Cancel Booking | Dairy Flat Airport">Cancel Booking</a>
+            </div>
+        </header>
+        <div class="home1">
+            <h1>Cancel A Booking</h1>
+        </div>
+        <div class="bsubmit">
+            <form id='emailForm' action="submit">
+                {% csrf_token %}
+                <label for="enterEmail">Please enter your email address: </label>
+                <input type="email" name="enterEmail" id="enterEmail" required="required" placeholder="example@example.com" size="40px">
+                <input hidden="true" type='text' name='hiddenbref' id="hiddenbref">
+                <button type='button' class='button2' onclick="getBookings()">Submit</button>
+            </form>
+            
+            
+        </div>
+        <!-- <table id="allBookings">
+            <tr>
+                <td><b>Reference Number</b></td>
+                <td><b>Flight Number</b></td>
+            </tr>
+            {% for booking in allBookings %}
+            <tr class="nth-child">
+                <td>{{ booking.bRef }}</td>
+                <td>{{ booking.flight.flightNo }}</td>
+            </tr>
+            {% endfor %}
+        </table> -->
+        <table hidden='true' id="displayBookingsTable" class="selectableRows"></table>
+        <p class='bookingInfo' id="bookingResponse"></p>
+        <h2 class="bookingInfo" id="confirmCancel"></h2>
+        <button type='button' hidden='true' class='button3' id='deleteBooking' onclick="deleteBooking()">Cancel Booking</button>
+        <p class='bookingInfo' id="deleteBookingResponse"></p>
+        <footer>
+            <div>
+            <div class="footer-info">
+            <p>Email: <u><b>info@dairyflatairport.co.nz</b></u></p>
+            <p>Phone: <u><b>+64 9 420 6969</b></u></p>
+            </div>
+            <div class="location">
+                <h1><u>Location:</u></h1>
+                <h2>36 Landfill Access Road, Dairy Flats 0794</h2>
+                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d20581.0635553348!2d174.6288387179942!3d-36.66523463911989!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x6d0d3d3235ccb6d1%3A0x55ec6b320883132!2sNorth%20Harbour%20Sports%20%26%20Country%20Club%20(Dairy%20Flat%20Club)!5e0!3m2!1sen!2snz!4v1651371009442!5m2!1sen!2snz" 
+                width="600" height="300" style="border:0;" allowfullscreen="" loading="lazy">
+                </iframe>
+            </div>
+            </div>
+        </footer>
+    </body>
+    <script>
+        function getBookings() {
+            document.getElementById('bookingResponse').innerHTML = '';
+            document.getElementById('deleteBookingResponse').innerHTML = '';
+            const form = document.getElementById("emailForm");
+            const email = form.elements['enterEmail'].value;
+            const token = form.elements['csrfmiddlewaretoken'].value;
+            const uri = "{% url 'getBooking' %}";
+            let xmlhttp = new XMLHttpRequest();
+            xmlhttp.onload = function() {
+                let recvText = xmlhttp.responseText;
+                document.getElementById("displayBookingsTable").innerHTML = recvText;
+                $('#displayBookingsTable').prop('hidden',false);
+                if (recvText.slice(0,4) == '<h4>') {
+                    document.getElementById('deleteBooking').style.display = 'inline-block';
+                    $('#deleteBooking').prop('hidden',false);
+                    $('#displayBookingsTable').prop('hidden',true);
+                }
+            }
+            let payload = new FormData();
+            payload.append('email',email);
+            payload.append('csrfmiddlewaretoken',token);
+            xmlhttp.open("POST",uri,true);
+            xmlhttp.send(payload);
+        }
+        function selectBooking(obj) {
+            var row = $(obj).closest('tr')[0]; 
+            var rowChildren = row.children;
+            const bRef = rowChildren[0].innerHTML;
+            const date = rowChildren[1].innerHTML;
+            const flightNo = rowChildren[2].innerHTML;
+            const origin = rowChildren[3].innerHTML;
+            const dest = rowChildren[4].innerHTML;
+            const price = rowChildren[5].innerHTML;
+            document.getElementById('confirmCancel').innerHTML = "Do you want to cancel your booking (#"+bRef+"), travelling from "+origin+" to "+dest+", flying on "+date+" on flight "+flightNo+"?"
+            document.getElementById('deleteBooking').style.display = 'inline-block';
+            $('#deleteBooking').prop('hidden',false);
+            document.getElementById('hiddenbref').value = bRef;
+            
+        }
+        function deleteBooking() {
+            document.getElementById('bookingResponse').innerHTML = '';
+            const form = document.getElementById("emailForm");
+            const bookingNum = form.elements['hiddenbref'].value;
+            const token = form.elements['csrfmiddlewaretoken'].value;
+            const uri = "{% url 'deleteBooking' %}";
+            let xmlhttp = new XMLHttpRequest();
+            xmlhttp.onload = function() {
+                let recvText = xmlhttp.responseText;
+                document.getElementById("deleteBookingResponse").innerHTML = recvText + '<br>';
+                document.getElementById('deleteBooking').style.display = 'none';
+                document.getElementById('confirmCancel').innerHTML = '';
+                $('#displayBookingsTable').prop('hidden',true);
+            }
+            let payload = new FormData();
+            payload.append('bNumber',bookingNum);
+            payload.append('csrfmiddlewaretoken',token);
+            xmlhttp.open("POST",uri,true);
+            xmlhttp.send(payload);
+        }
+    </script>
+</html>

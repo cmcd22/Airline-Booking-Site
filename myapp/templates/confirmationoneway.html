@@ -1,0 +1,68 @@
+<html lang='en' dir='ltr'>
+    <head>
+        {% load static %}
+        <link rel="stylesheet" href="{% static 'css.css' %}">
+        {% load static %}
+        <link rel="icon" type="image/png" href="{% static 'logo_small.png' %}">
+        <title>Booking Confirmation | Dairy Flat Airport</title>
+    </head>
+    <body onload="getImage()">
+        <p id="origin" hidden="true">{{info.flight.origin }}</p>
+        <p id="destination" hidden="true">{{info.flight.destination }}</p>
+        <div class="home1">
+            <h1>Booking Confirmed!</h1>
+        </div>  
+        <h3><u>Booking Reference Number:</u> <span>{{ info.bRef }}</span></h3>
+        <h4>NOTE: This number is required to make booking alterations, so please keep a record of it!</h4>
+        <br>
+        <h1><u>Flight Information</u></h1>
+        <h3><u>Flight Number:</u> <span>{{info.flight.flightNo }}</span></h3>
+        <h3><u>Departure Date:</u> <span>{{info.flight.departureDate }}</span></h3>
+        <h3><u>Departure Point:</u> <span>{{info.flight.origin }}</span></h3>
+        <h3><u>Destination:</u> <span>{{info.flight.destination }}</span></h3>
+        <hr>
+        <h3><u>Departure Time:</u> <span>{{info.flight.departureTime }}</span></h3>
+        <h3><u>Arrival Time:</u> <span>{{info.flight.arrivalTime }}</span></h3>
+        <h3><u>Flight Duration:</u> <span>{{info.flight.duration }}</span></h3>
+        <hr>
+        <h3 id="price2"><u>Price:</u> <span>{{info.flight.price }}</span></h3>
+        {% load static %}
+        <img id="flightRoute" src="" alt="Flight Route">
+        <form action="{% url 'home' %}">
+            <input class='button2' type="submit" value="Return To Homepage" />
+        </form>    
+    </body>
+    <script>
+        function getImage() {
+            const o = document.getElementById('origin').innerHTML;
+            const d = document.getElementById('destination').innerHTML;
+            if (o == "Dairy Flat") {
+                if (d == "Sydney") {
+                    document.getElementById('flightRoute').src = "{% static 'DF-S.gif' %}"
+                } else if (d == "Chatham Islands") {
+                    document.getElementById('flightRoute').src = "{% static 'DF-CI.gif' %}"
+                } else if (d == "Great Barrier Island") {
+                    document.getElementById('flightRoute').src = "{% static 'DF-GBI.gif' %}"
+                } else if (d == "Lake Tekapo") {
+                    document.getElementById('flightRoute').src = "{% static 'DF-LT.gif' %}"
+                } else if (d == "Rotorua") {
+                    document.getElementById('flightRoute').src = "{% static 'DF-R.gif' %}"
+                }
+            } else if (o == "Chatham Islands") {
+                document.getElementById('flightRoute').src = "{% static 'DF-CI.gif' %}"
+            } else if (o == "Great Barrier Island") {
+                document.getElementById('flightRoute').src = "{% static 'DF-GBI.gif' %}"
+            } else if (o == "Lake Tekapo") {
+                document.getElementById('flightRoute').src = "{% static 'DF-LT.gif' %}"
+            } else if (o == "Sydney") {
+                document.getElementById('flightRoute').src = "{% static 'S-DF.gif' %}"
+            } else if (o == "Rotorua") {
+                if (d == "Dairy Flat") {
+                    document.getElementById('flightRoute').src = "{% static 'DF-R.gif' %}"
+                } else if (d == "Sydney") {
+                    document.getElementById('flightRoute').src = "{% static 'R-S.gif' %}"
+                }
+            }
+        }
+    </script>
+</html>
